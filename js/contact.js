@@ -1,0 +1,106 @@
+(function($) { "use strict";
+
+	function Selector_Cache() {
+		var collection = {};
+
+		function get_from_cache( selector ) {
+			if ( undefined === collection[ selector ] ) {
+				collection[ selector ] = $( selector );
+			}
+
+			return collection[ selector ];
+		}
+
+		return { get: get_from_cache };
+	}
+
+	var selectors = new Selector_Cache();
+	
+		jQuery(document).ready(function ($) { // wait until the document is ready
+			$('#send').on('click', function(e){ // when the button is clicked the code executes
+				//$('.error').fadeOut('slow'); // reset the error messages (hides them)
+				
+				var error = false; // we will set this true if the form isn't valid
+				
+				var name = $('input#name').val(); // get the value of the input field
+				if(name == "" || name == " ") {
+					$('#err-name').fadeIn('slow'); // show the error message
+					error = true; // change the error state to true
+				}
+
+				var phone = $('input#phone').val(); // get the value of the input field
+				if(phone == "" || phone == " ") {
+					$('#err-phone').fadeIn('slow'); // show the error message
+					error = true; // change the error state to true
+				}
+
+				var subject = $('input#subject').val(); // get the value of the input field
+				if(subject == "" || subject == " ") {
+					$('#err-subject').fadeIn('slow'); // show the error message
+					error = true; // change the error state to true
+				}
+
+				var website = $('input#website').val(); // get the value of the input field
+				if(website == "" || website == " ") {
+					$('#err-website').fadeIn('slow'); // show the error message
+					error = true; // change the error state to true
+				}
+
+				var message = $('textarea#message').val(); // get the value of the input field
+				if(message == "" || message == " ") {
+					$('#err-message').fadeIn('slow'); // show the error message
+					error = true; // change the error state to true
+				}
+
+				var email_compare = /^([a-z0-9_.-]+)@([da-z.-]+).([a-z.]{2,6})$/; // Syntax to compare against input
+				var email = $('input#email').val(); // get the value of the input field
+				if (email == "" || email == " ") { // check if the field is empty
+					$('#err-email').fadeIn('slow'); // error - empty
+					error = true;
+					$('input#email').focus();
+					return false;
+				}else if (!email_compare.test(email)) { // if it's not empty check the format against our email_compare variable
+					$('#err-emailvld').fadeIn('slow'); // error - not right format
+					error = true;
+					return false;
+				}
+				
+				if(error == true) {
+					$('#err-form').slideDown('slow');
+					return false;
+				} 
+
+				 $('#err-timedout').empty();
+				 $('#err-state').empty();
+				 $('#ajaxsuccess').empty();
+				 var data_string = $('#form').serialize(); // Collect data from form
+				 
+
+				$.ajax({
+					type: "POST",
+					url: "email-function.php",
+					data: data_string,
+					timeout: 6000,
+					success: function(response) {
+						$('#ajaxsuccess').fadeIn(1000).html(response);
+					},
+					error: function(response, error) {
+						if (error == "timeout") {
+							$('#err-timedout').slideDown('slow');
+						}
+						else {
+							$('#err-state').slideDown('slow');
+							$("#err-state").html('An error occurred: ' + error);
+							$("#err-state").html('An error occurred: ' + response);
+						}
+					}
+					
+				});
+
+				e.preventDefault();
+
+				return false; // stops user browser being directed to the php file
+			}); // end click function
+		});
+		
+  })(jQuery); 
